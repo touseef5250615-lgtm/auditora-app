@@ -4,6 +4,7 @@ import { createClient } from "../../lib/supabase/client";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");
+  
   const [companies, setCompanies] = useState<any[]>([]);
   const [selectedCompany, setSelectedCompany] = useState("");
   const [fullName, setFullName] = useState("");
@@ -12,10 +13,20 @@ export default function SettingsPage() {
   const [companyName, setCompanyName] = useState("");
   const [companyCurrency, setCompanyCurrency] = useState("");
   const [companyYear, setCompanyYear] = useState("");
+
+  // Naya PIN System State
+  const [appPin, setAppPin] = useState("");
+  const [savedPin, setSavedPin] = useState("");
+
   const [message, setMessage] = useState("");
   const supabase = createClient();
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { 
+    fetchData(); 
+    // Browser se PIN load karein
+    const storedPin = localStorage.getItem("auditora_pin");
+    if (storedPin) setSavedPin(storedPin);
+  }, []);
 
   useEffect(() => {
     if (selectedCompany) {
@@ -46,27 +57,35 @@ export default function SettingsPage() {
     if (error) setMessage("Error: " + error.message); else { setMessage("Password updated successfully!"); setNewPassword(""); }
   };
 
-  const handleRegisterPasskey = async () => {
-    setMessage("Opening device security...");
-    try {
-      const { error } = await supabase.auth.registerPasskey();
-      if (error) setMessage("Error: " + error.message);
-      else setMessage("Face ID / Fingerprint successfully enabled!");
-    } catch (err: any) {
-      setMessage("Error: " + err.message);
-    }
-  };
-
   const handleUpdateCompany = async (e: React.FormEvent) => {
     e.preventDefault(); setMessage("");
     const { error } = await supabase.from("companies").update({ name: companyName, currency: companyCurrency, financial_year: companyYear }).eq("id", selectedCompany);
     if (error) setMessage("Error: " + error.message); else { setMessage("Company updated!"); fetchData(); }
   };
 
-  // ... (Baqi ka code pehle jaisa hi hai, bas design thora professional kiya gaya hai) ...
+  // PIN Save karne ka function
+  const handleSavePin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (appPin.length !== 4) {
+      setMessage("Error: PIN must be exactly 4 digits.");
+      return;
+    }
+    localStorage.setItem("auditora_pin", appPin);
+    setSavedPin(appPin);
+    setAppPin("");
+    setMessage("App PIN successfully set! You can now lock your app.");
+  };
+
+  const handleRemovePin = () => {
+    localStorage.removeItem("auditora_pin");
+    setSavedPin("");
+    setMessage("App PIN removed.");
+  };
+
   return (
     <div>
       <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '20px', color: '#C9AD72' }}>Settings</h2>
+      
       {message && <p style={{ color: message.includes("Error") ? '#F87171' : '#4ADE80', marginBottom: '15px', padding: '10px', backgroundColor: '#151515', borderRadius: '4px' }}>{message}</p>}
 
       <div style={{ display: 'flex', gap: '30px' }}>
@@ -82,20 +101,32 @@ export default function SettingsPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
               <h3 style={{ fontSize: '1.2rem', color: '#C9AD72', marginBottom: '10px' }}>Security Settings</h3>
               
-              {/* Windows Hello / Mobile Face Unlock style box */}
+              {/* App Lock PIN Box */}
               <div style={{ padding: '20px', backgroundColor: '#080808', borderRadius: '6px', border: '1px solid #333' }}>
-                <h4 style={{ fontSize: '1rem', marginBottom: '5px' }}>Fingerprint & Face Unlock</h4>
-                <p style={{ color: '#A0A0A0', fontSize: '0.9rem', marginBottom: '15px' }}>When you set up Face Unlock and Fingerprint Unlock, your device will ask for your fingerprint or face when you sign in.</p>
+                <h4 style={{ fontSize: '1rem', marginBottom: '5px' }}>App Lock PIN</h4>
+                <p style={{ color: '#A0A0A0', fontSize: '0.9rem', marginBottom: '15px' }}>Set a 4-digit PIN to lock your app. You will need this PIN to unlock the app next time.</p>
                 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #222' }}>
-                  <div><p style={{ margin: 0, fontWeight: 'bold' }}>Face Unlock</p><p style={{ margin: 0, fontSize: '0.8rem', color: '#A0A0A0' }}>Tap to set up face recognition</p></div>
-                  <button onClick={handleRegisterPasskey} style={{ backgroundColor: '#C9AD72', color: '#080808', padding: '8px 15px', borderRadius: '4px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>Enable</button>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0' }}>
-                  <div><p style={{ margin: 0, fontWeight: 'bold' }}>Fingerprint Unlock</p><p style={{ margin: 0, fontSize: '0.8rem', color: '#A0A0A0' }}>Tap to set up fingerprint</p></div>
-                  <button onClick={handleRegisterPasskey} style={{ backgroundColor: '#C9AD72', color: '#080808', padding: '8px 15px', borderRadius: '4px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>Enable</button>
-                </div>
+                {savedPin ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0' }}>
+                    <div>
+                      <p style={{ margin: 0, fontWeight: 'bold', color: '#4ADE80' }}>PIN is active</p>
+                      <p style={{ margin: 0, fontSize: '0.8rem', color: '#A0A0A0' }}>Your app is secured.</p>
+                    </div>
+                    <button onClick={handleRemovePin} style={{ backgroundColor: 'transparent', color: '#F87171', border: '1px solid #F87171', padding: '8px 15px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>Remove PIN</button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSavePin} style={{ display: 'flex', gap: '10px' }}>
+                    <input 
+                      type="password" 
+                      placeholder="Enter 4-digit PIN" 
+                      value={appPin} 
+                      onChange={(e) => setAppPin(e.target.value.replace(/\D/g, '').slice(0, 4))} 
+                      required 
+                      style={{ padding: '10px', borderRadius: '4px', border: '1px solid #333', backgroundColor: '#151515', color: '#FFF', width: '200px', letterSpacing: '5px' }} 
+                    />
+                    <button type="submit" style={{ backgroundColor: '#C9AD72', color: '#080808', padding: '10px 20px', borderRadius: '4px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>Set PIN</button>
+                  </form>
+                )}
               </div>
 
               {/* Password */}
@@ -110,7 +141,6 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {/* Baqi tabs (Profile & Company) ke liye code yahan aayega... */}
           {activeTab === "profile" && (
              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                <h3 style={{ fontSize: '1.2rem', color: '#C9AD72', marginBottom: '10px' }}>My Profile</h3>
