@@ -6,14 +6,19 @@ export default function BookkeepingPage() {
   const [companies, setCompanies] = useState<any[]>([]);
   const [selectedCompany, setSelectedCompany] = useState("");
   const [entries, setEntries] = useState<any[]>([]);
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  
+  // Date ki value shuru mein khali rakhi hai, taake build fail na ho
+  const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
   const [debit, setDebit] = useState("");
   const [credit, setCredit] = useState("");
   const [message, setMessage] = useState("");
+  
   const supabase = createClient();
 
   useEffect(() => {
+    // Jab page load ho, tab aaj ki date set karein
+    setDate(new Date().toISOString().split('T')[0]);
     fetchCompanies();
   }, []);
 

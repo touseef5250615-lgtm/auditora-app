@@ -2,6 +2,29 @@
 import { useState, useEffect } from "react";
 import { createClient } from "../../lib/supabase/client";
 
+const CURRENCIES = [
+  { code: "USD", name: "US Dollar" },
+  { code: "PKR", name: "Pakistani Rupee" },
+  { code: "EUR", name: "Euro" },
+  { code: "GBP", name: "British Pound" },
+  { code: "AED", name: "UAE Dirham" },
+  { code: "SAR", name: "Saudi Riyal" },
+  { code: "INR", name: "Indian Rupee" },
+  { code: "CAD", name: "Canadian Dollar" },
+  { code: "AUD", name: "Australian Dollar" },
+  { code: "JPY", name: "Japanese Yen" },
+  { code: "CNY", name: "Chinese Yuan" },
+  { code: "CHF", name: "Swiss Franc" },
+  { code: "TRY", name: "Turkish Lira" },
+  { code: "BDT", name: "Bangladeshi Taka" },
+  { code: "QAR", name: "Qatari Riyal" },
+  { code: "KWD", name: "Kuwaiti Dinar" },
+  { code: "BHD", name: "Bahraini Dinar" },
+  { code: "OMR", name: "Omani Rial" },
+  { code: "MYR", name: "Malaysian Ringgit" },
+  { code: "SGD", name: "Singapore Dollar" }
+];
+
 export default function CompaniesPage() {
   const [companies, setCompanies] = useState<any[]>([]);
   const [name, setName] = useState("");
@@ -53,18 +76,35 @@ export default function CompaniesPage() {
       
       {message && <p style={{ color: message.includes("Error") ? '#F87171' : '#4ADE80', marginBottom: '15px' }}>{message}</p>}
 
-      {/* Add Company Form */}
       <div style={{ backgroundColor: '#151515', padding: '20px', borderRadius: '8px', border: '1px solid #333', marginBottom: '30px' }}>
         <h3 style={{ fontSize: '1.2rem', marginBottom: '15px' }}>Add New Company</h3>
         <form onSubmit={handleAddCompany} style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+          
           <input type="text" placeholder="Company Name" value={name} onChange={(e) => setName(e.target.value)} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #333', backgroundColor: '#080808', color: '#FFF', flex: 1, minWidth: '200px' }} />
-          <input type="text" placeholder="Currency (e.g. USD, PKR)" value={currency} onChange={(e) => setCurrency(e.target.value)} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #333', backgroundColor: '#080808', color: '#FFF', width: '150px' }} />
+          
+          <div style={{ display: 'flex', flexDirection: 'column', width: '200px' }}>
+            <input 
+              type="text" 
+              placeholder="Search Currency (e.g. PKR)" 
+              value={currency} 
+              onChange={(e) => setCurrency(e.target.value.toUpperCase())} 
+              list="currency-list"
+              required 
+              style={{ padding: '10px', borderRadius: '4px', border: '1px solid #333', backgroundColor: '#080808', color: '#FFF' }} 
+            />
+            <datalist id="currency-list">
+              {CURRENCIES.map((c) => (
+                <option key={c.code} value={c.code}>{c.name}</option>
+              ))}
+            </datalist>
+          </div>
+
           <input type="text" placeholder="Financial Year" value={financialYear} onChange={(e) => setFinancialYear(e.target.value)} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #333', backgroundColor: '#080808', color: '#FFF', width: '150px' }} />
+          
           <button type="submit" style={{ backgroundColor: '#C9AD72', color: '#080808', padding: '10px 20px', borderRadius: '4px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>Add Company</button>
         </form>
       </div>
 
-      {/* Companies List */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
         {companies.map((company) => (
           <div key={company.id} style={{ backgroundColor: '#151515', padding: '20px', borderRadius: '8px', border: '1px solid #333' }}>
