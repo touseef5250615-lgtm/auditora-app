@@ -29,6 +29,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
           <Link href="/dashboard" style={{ color: '#A0A0A0', textDecoration: 'none' }}>Dashboard</Link>
           <Link href="/dashboard/companies" style={{ color: '#A0A0A0', textDecoration: 'none' }}>Companies</Link>
+          <Link href="/dashboard/customers" style={{ color: '#A0A0A0', textDecoration: 'none' }}>Customers</Link>
           <Link href="/dashboard/bookkeeping" style={{ color: '#A0A0A0', textDecoration: 'none' }}>Bookkeeping</Link>
           <Link href="/dashboard/invoicing" style={{ color: '#A0A0A0', textDecoration: 'none' }}>Invoicing</Link>
           <Link href="/dashboard/expenses" style={{ color: '#A0A0A0', textDecoration: 'none' }}>Expenses</Link>
