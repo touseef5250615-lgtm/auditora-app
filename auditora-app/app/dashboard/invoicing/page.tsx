@@ -7,20 +7,23 @@ import autoTable from "jspdf-autotable";
 export default function InvoicingPage() {
   const [companies, setCompanies] = useState<any[]>([]);
   const [selectedCompany, setSelectedCompany] = useState("");
+  const [customers, setCustomers] = useState<any[]>([]);
   const [invoices, setInvoices] = useState<any[]>([]);
-  const [customerName, setCustomerName] = useState("");
+  
+  const [selectedCustomer, setSelectedCustomer] = useState("");
   const [amount, setAmount] = useState("");
   const [status, setStatus] = useState("Unpaid");
   const [message, setMessage] = useState("");
   
   const supabase = createClient();
 
+  useEffect(() => { fetchCompanies(); }, []);
+  
   useEffect(() => {
-    fetchCompanies();
-  }, []);
-
-  useEffect(() => {
-    if (selectedCompany) fetchInvoices();
+    if (selectedCompany) {
+      fetchInvoices();
+      fetchCustomers();
+    }
   }, [selectedCompany]);
 
   const fetchCompanies = async () => {
@@ -31,6 +34,11 @@ export default function InvoicingPage() {
     }
   };
 
+  const fetchCustomers = async () => {
+    const { data } = await supabase.from("customers").select("*").eq("company_id", selectedCompany);
+    if (data) setCustomers(data);
+  };
+
   const fetchInvoices = async () => {
     const { data } = await supabase.from("invoices").select("*").eq("company_id", selectedCompany).order('created_at', { ascending: false });
     if (data) setInvoices(data);
@@ -39,11 +47,32 @@ export default function InvoicingPage() {
   const handleAddInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
-    if (!selectedCompany) { setMessage("Please select a company first."); return; }
+    
+    if (!selectedCompany || !selectedCustomer) {
+      setMessage("Please select a company and a customer.");
+      return;
+    }
 
-    const { error } = await supabase.from("invoices").insert([{ company_id: selectedCompany, customer_name: customerName, amount: parseFloat(amount) || 0, status: status }]);
-    if (error) { setMessage("Error: " + error.message); } 
-    else { setMessage("Invoice created successfully!"); setCustomerName(""); setAmount(""); fetchInvoices(); }
+    // Customer ka naam dhoondein
+    const customerData = customers.find(c => c.id === selectedCustomer);
+    const customerName = customerData ? customerData.name : "Unknown";
+
+    const { error } = await supabase.from("invoices").insert([
+      { 
+        company_id: selectedCompany, 
+        customer_name: customerName, // Yahan customer ka naam save hoga
+        amount: parseFloat(amount) || 0, 
+        status: status 
+      }
+    ]);
+
+    if (error) {
+      setMessage("Error: " + error.message);
+    } else {
+      setMessage("Invoice created successfully!");
+      setAmount("");
+      fetchInvoices();
+    }
   };
 
   const downloadPDF = (invoice: any) => {
@@ -64,15 +93,23 @@ export default function InvoicingPage() {
   return (
     <div>
       <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '20px', color: '#C9AD72' }}>Invoicing - Sales & Billing</h2>
+      
       {message && <p style={{ color: message.includes("Error") ? '#F87171' : '#4ADE80', marginBottom: '15px' }}>{message}</p>}
+
       <div style={{ backgroundColor: '#151515', padding: '20px', borderRadius: '8px', border: '1px solid #333', marginBottom: '30px' }}>
         <select onChange={(e) => setSelectedCompany(e.target.value)} value={selectedCompany} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #333', backgroundColor: '#080808', color: '#FFF', marginBottom: '20px', width: '100%' }}>
           <option value="">-- Select a Company --</option>
           {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
+
         {selectedCompany && (
           <form onSubmit={handleAddInvoice} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <input type="text" placeholder="Customer Name" value={customerName} onChange={(e) => setCustomerName(e.target.value)} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #333', backgroundColor: '#080808', color: '#FFF', flex: 2, minWidth: '200px' }} />
+            {/* Customer Dropdown */}
+            <select value={selectedCustomer} onChange={(e) => setSelectedCustomer(e.target.value)} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #333', backgroundColor: '#080808', color: '#FFF', flex: 2, minWidth: '200px' }}>
+              <option value="">-- Select Customer --</option>
+              {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+
             <input type="number" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #333', backgroundColor: '#080808', color: '#FFF', width: '150px' }} />
             <select value={status} onChange={(e) => setStatus(e.target.value)} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #333', backgroundColor: '#080808', color: '#FFF', width: '120px' }}>
               <option value="Paid">Paid</option>
@@ -82,11 +119,20 @@ export default function InvoicingPage() {
           </form>
         )}
       </div>
+
       {selectedCompany && (
         <div style={{ backgroundColor: '#151515', padding: '20px', borderRadius: '8px', border: '1px solid #333' }}>
           <h3 style={{ fontSize: '1.2rem', marginBottom: '15px' }}>Invoice History</h3>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead><tr style={{ borderBottom: '1px solid #333', color: '#A0A0A0' }}><th style={{ padding: '10px' }}>Invoice ID</th><th style={{ padding: '10px' }}>Customer</th><th style={{ padding: '10px' }}>Amount</th><th style={{ padding: '10px' }}>Status</th><th style={{ padding: '10px' }}>Action</th></tr></thead>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #333', color: '#A0A0A0' }}>
+                <th style={{ padding: '10px' }}>Invoice ID</th>
+                <th style={{ padding: '10px' }}>Customer</th>
+                <th style={{ padding: '10px' }}>Amount</th>
+                <th style={{ padding: '10px' }}>Status</th>
+                <th style={{ padding: '10px' }}>Action</th>
+              </tr>
+            </thead>
             <tbody>
               {invoices.map(inv => (
                 <tr key={inv.id} style={{ borderBottom: '1px solid #222' }}>
@@ -94,7 +140,9 @@ export default function InvoicingPage() {
                   <td style={{ padding: '10px' }}>{inv.customer_name}</td>
                   <td style={{ padding: '10px', color: '#C9AD72' }}>${inv.amount}</td>
                   <td style={{ padding: '10px', color: inv.status === 'Paid' ? '#4ADE80' : '#F87171' }}>{inv.status}</td>
-                  <td style={{ padding: '10px' }}><button onClick={() => downloadPDF(inv)} style={{ backgroundColor: '#333', color: '#FFF', border: '1px solid #C9AD72', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>Download PDF</button></td>
+                  <td style={{ padding: '10px' }}>
+                    <button onClick={() => downloadPDF(inv)} style={{ backgroundColor: '#333', color: '#FFF', border: '1px solid #C9AD72', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>Download PDF</button>
+                  </td>
                 </tr>
               ))}
               {invoices.length === 0 && <tr><td colSpan={5} style={{ padding: '10px', color: '#A0A0A0' }}>No invoices created yet.</td></tr>}
