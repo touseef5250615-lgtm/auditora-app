@@ -32,6 +32,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Link href="/dashboard/bookkeeping" style={{ color: '#A0A0A0', textDecoration: 'none' }}>Bookkeeping</Link>
           <Link href="/dashboard/invoicing" style={{ color: '#A0A0A0', textDecoration: 'none' }}>Invoicing</Link>
           <Link href="/dashboard/expenses" style={{ color: '#A0A0A0', textDecoration: 'none' }}>Expenses</Link>
+          <Link href="/dashboard/reports" style={{ color: '#A0A0A0', textDecoration: 'none' }}>Reports</Link>
         </nav>
       </aside>
 
