@@ -1,15 +1,21 @@
 ﻿@import "tailwindcss";
 
-@theme {
-  --color-auditBlack: #080808;
-  --color-auditCharcoal: #151515;
-  --color-auditGold: #C9AD72;
-  --color-auditGoldHover: #B99A5C;
-  --color-auditText: #FFFFFF;
-  --color-auditGray: #A0A0A0;
+:root {
+  --bg-color: #F3F4F6;
+  --text-color: #111827;
+  --card-bg: #FFFFFF;
+  --card-border: #E5E7EB;
+}
+
+[data-theme="dark"] {
+  --bg-color: #080808;
+  --text-color: #FFFFFF;
+  --card-bg: #151515;
+  --card-border: #333333;
 }
 
 body {
-  background-color: var(--color-auditBlack);
-  color: var(--color-auditText);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
 }
