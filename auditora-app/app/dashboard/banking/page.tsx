@@ -56,9 +56,15 @@ export default function BankingPage() {
   };
 
   const toggleReconcile = async (id: string, currentStatus: boolean) => {
+    setMessage("Updating status...");
     const { error } = await supabase.from("bank_transactions").update({ is_reconciled: !currentStatus }).eq("id", id);
-    if (error) setMessage("Error: " + error.message);
-    else fetchBankTransactions();
+    
+    if (error) {
+      setMessage("Error: " + error.message);
+    } else {
+      setMessage("Status updated successfully!");
+      fetchBankTransactions();
+    }
   };
 
   return (
@@ -112,7 +118,18 @@ export default function BankingPage() {
                   <td style={{ padding: '10px' }}>
                     <button 
                       onClick={() => toggleReconcile(tx.id, tx.is_reconciled)} 
-                      style={{ backgroundColor: tx.is_reconciled ? '#F59E0B' : '#4ADE80', color: '#080808', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
+                      style={{ 
+                        backgroundColor: tx.is_reconciled ? '#F59E0B' : '#4ADE80', 
+                        color: '#080808', 
+                        border: 'none', 
+                        padding: '5px 10px', 
+                        borderRadius: '4px', 
+                        cursor: 'pointer', 
+                        fontSize: '0.8rem', 
+                        fontWeight: 'bold',
+                        zIndex: 10,
+                        position: 'relative'
+                      }}
                     >
                       {tx.is_reconciled ? 'Undo Match' : 'Match'}
                     </button>
