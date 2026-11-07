@@ -10,7 +10,7 @@ export default function BankingPage() {
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
-  const [type, setType] = useState("Deposit"); // Deposit or Withdrawal
+  const [type, setType] = useState("Deposit");
   const [message, setMessage] = useState("");
   
   const supabase = createClient();
@@ -44,23 +44,21 @@ export default function BankingPage() {
     if (!selectedCompany) { setMessage("Please select a company first."); return; }
 
     const { error } = await supabase.from("bank_transactions").insert([
-      { 
-        company_id: selectedCompany, 
-        date: date, 
-        description: description, 
-        amount: parseFloat(amount) || 0,
-        type: type,
-        is_reconciled: false
-      }
+      { company_id: selectedCompany, date: date, description: description, amount: parseFloat(amount) || 0, type: type, is_reconciled: false }
     ]);
 
-    if (error) {
-      setMessage("Error: " + error.message);
-    } else {
+    if (error) setMessage("Error: " + error.message);
+    else {
       setMessage("Bank transaction added successfully!");
       setDescription(""); setAmount("");
       fetchBankTransactions();
     }
+  };
+
+  const toggleReconcile = async (id: string, currentStatus: boolean) => {
+    const { error } = await supabase.from("bank_transactions").update({ is_reconciled: !currentStatus }).eq("id", id);
+    if (error) setMessage("Error: " + error.message);
+    else fetchBankTransactions();
   };
 
   return (
@@ -100,6 +98,7 @@ export default function BankingPage() {
                 <th style={{ padding: '10px' }}>Type</th>
                 <th style={{ padding: '10px' }}>Amount</th>
                 <th style={{ padding: '10px' }}>Status</th>
+                <th style={{ padding: '10px' }}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -110,9 +109,17 @@ export default function BankingPage() {
                   <td style={{ padding: '10px', color: tx.type === 'Deposit' ? '#4ADE80' : '#F87171' }}>{tx.type}</td>
                   <td style={{ padding: '10px', color: '#C9AD72' }}>${tx.amount}</td>
                   <td style={{ padding: '10px', color: tx.is_reconciled ? '#4ADE80' : '#F59E0B' }}>{tx.is_reconciled ? 'Reconciled' : 'Unreconciled'}</td>
+                  <td style={{ padding: '10px' }}>
+                    <button 
+                      onClick={() => toggleReconcile(tx.id, tx.is_reconciled)} 
+                      style={{ backgroundColor: tx.is_reconciled ? '#F59E0B' : '#4ADE80', color: '#080808', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
+                    >
+                      {tx.is_reconciled ? 'Undo Match' : 'Match'}
+                    </button>
+                  </td>
                 </tr>
               ))}
-              {bankTransactions.length === 0 && <tr><td colSpan={5} style={{ padding: '10px', color: '#A0A0A0' }}>No bank transactions added yet.</td></tr>}
+              {bankTransactions.length === 0 && <tr><td colSpan={6} style={{ padding: '10px', color: '#A0A0A0' }}>No bank transactions added yet.</td></tr>}
             </tbody>
           </table>
         </div>
