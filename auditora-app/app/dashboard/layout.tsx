@@ -63,11 +63,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link href="/dashboard/customers" style={{ color: '#A0A0A0', textDecoration: 'none', padding: '8px 10px', borderRadius: '4px' }}>Customers</Link>
               <Link href="/dashboard/vendors" style={{ color: '#A0A0A0', textDecoration: 'none', padding: '8px 10px', borderRadius: '4px' }}>Vendors / Suppliers</Link>
 
+              <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '15px', marginBottom: '5px', paddingLeft: '10px' }}>INVENTORY</div>
+              <Link href="/dashboard/inventory" style={{ color: '#A0A0A0', textDecoration: 'none', padding: '8px 10px', borderRadius: '4px' }}>Products & Stock</Link>
+
               <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '15px', marginBottom: '5px', paddingLeft: '10px' }}>BANKING & MONEY</div>
               <Link href="/dashboard/banking" style={{ color: '#A0A0A0', textDecoration: 'none', padding: '8px 10px', borderRadius: '4px' }}>Banking</Link>
               
               <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '15px', marginBottom: '5px', paddingLeft: '10px' }}>PAYROLL & TAX</div>
-              <Link href="/dashboard/payroll" style={{ color: '#A0A0A0', textDecoration: 'none', padding: '8px 10px', borderRadius: '4px' }}>Employees & Payroll</Link>
+              <Link href="/dashboard/employees" style={{ color: '#A0A0A0', textDecoration: 'none', padding: '8px 10px', borderRadius: '4px' }}>Employees & Payroll</Link>
               <Link href="/dashboard/taxes" style={{ color: '#A0A0A0', textDecoration: 'none', padding: '8px 10px', borderRadius: '4px' }}>Tax Management</Link>
               
               <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '15px', marginBottom: '5px', paddingLeft: '10px' }}>REPORTS & AUDIT</div>
@@ -76,6 +79,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               
               <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '15px', marginBottom: '5px', paddingLeft: '10px' }}>SETTINGS</div>
               <Link href="/dashboard/settings" style={{ color: '#A0A0A0', textDecoration: 'none', padding: '8px 10px', borderRadius: '4px' }}>Settings</Link>
+              <Link href="/dashboard/pricing" style={{ color: '#C9AD72', textDecoration: 'none', padding: '8px 10px', borderRadius: '4px', fontWeight: 'bold' }}>Upgrade to Pro</Link>
             </nav>
           </aside>
         )}
